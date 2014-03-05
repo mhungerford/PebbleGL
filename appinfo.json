@@ -1,0 +1,51 @@
+{
+  "uuid": "7d60b4e6-6ea4-43a4-9e15-821a48b93e54",
+  "shortName": "MiniGL Models",
+  "longName": "MiniGL Models",
+  "companyName": "Your Company",
+  "versionCode": 1,
+  "versionLabel": "1.0.0",
+  "watchapp": {
+    "watchface": false
+  },
+  "appKeys": {
+    "dummy": 0
+  },
+  "resources": {
+    "media": [
+    {
+      "type": "raw",
+      "name": "MODEL_1",
+      "file": "mask.stl"
+    },{
+      "type": "raw",
+      "name": "MODEL_2",
+      "file": "batman.stl"
+    },{
+      "type": "raw",
+      "name": "MODEL_3",
+      "file": "heart.stl"
+    },{
+      "type": "raw",
+      "name": "MODEL_4",
+      "file": "gear.stl"
+    },{
+      "type": "raw",
+      "name": "MODEL_5",
+      "file": "superman.stl"
+    },{
+      "type": "raw",
+      "name": "MODEL_6",
+      "file": "usb_sign.stl"
+    },{
+      "type": "raw",
+      "name": "MODEL_7",
+      "file": "apple.stl"
+    },{
+      "type": "raw",
+      "name": "MODEL_8",
+      "file": "n.stl"
+    }
+    ]
+  }
+}
