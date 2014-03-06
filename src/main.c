@@ -1,5 +1,4 @@
 #include <pebble.h>
-#include "dither.h"
 #include "model_stl.h"
 
 static Window *window;
@@ -21,7 +20,8 @@ static void register_timer(void* data);
 uint16_t frame = 0;
 uint8_t* model_buf = NULL;
 
-extern uint8_t framebuffer[FRAMEBUFFER_WIDTH * FRAMEBUFFER_HEIGHT / 2];
+extern uint8_t *screen_buffer;
+
 static void register_timer(void* data);
 
 static bool load_model_resource(int index) {
@@ -34,6 +34,7 @@ static bool load_model_resource(int index) {
   uint8_t* buf = malloc(len);
   resource_load(handle, buf, len);
   model_buf = buf;
+  return true;
 }
 
 static void up_click_handler(ClickRecognizerRef recognizer, void *context) {
@@ -65,12 +66,10 @@ static uint16_t frame_count = 0;
 
 static void render_opengl(Layer* layer, GContext *ctx) {
   GBitmap* bitmap = (GBitmap*)ctx;
-  uint32_t* buf = (uint32_t*)bitmap->addr;
+  screen_buffer = (uint8_t*)bitmap->addr;
 
   gl_drawframe(model_buf, wireframe, model_rotation, reset_rotate);
   reset_rotate = false;
-
-  floyd_steinberg_dither(framebuffer, (uint8_t*)buf, -1);
 #ifdef FPS
   frame_count++;
 #endif
@@ -111,7 +110,7 @@ static void init(void) {
   }
 
   window = window_create();
-  //window_set_fullscreen(window, true);
+  window_set_fullscreen(window, true);
   window_set_background_color(window, GColorBlack);
   window_set_click_config_provider(window, click_config_provider);
   window_set_window_handlers(window, (WindowHandlers) {
@@ -134,4 +133,5 @@ int main(void) {
 
   app_event_loop();
   deinit();
+  return 0;
 }

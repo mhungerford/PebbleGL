@@ -35,7 +35,7 @@ def build(ctx):
     #Needed for math-sll.h asm functions
     ctx.env.CFLAGS.append('-Wa,-mimplicit-it=always')
     ctx.env.CFLAGS.append('-DFRAMEBUFFER_WIDTH=144')
-    ctx.env.CFLAGS.append('-DFRAMEBUFFER_HEIGHT=144')
+    ctx.env.CFLAGS.append('-DFRAMEBUFFER_HEIGHT=168')
 
     ctx.pbl_program(source=ctx.path.ant_glob('src/**/*.c'),
                     target='pebble-app.elf')

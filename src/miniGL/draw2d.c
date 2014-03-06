@@ -16,31 +16,52 @@
 #define CHECK_CLIP( x1, y1 ) \
   (x1 >= 0 && x1 < FRAMEBUFFER_WIDTH && y1 >= 0 && y1 < FRAMEBUFFER_HEIGHT)
 
-//4-bit grayscale, only need support in framebuffer and draw_pixel
-uint8_t framebuffer[FRAMEBUFFER_WIDTH * FRAMEBUFFER_HEIGHT / 2];
+uint8_t *screen_buffer; // pointer to actual screen buffer of the app (set during update proc)
+
 static uint8_t current_color = 0x00; //Default to black
 static uint8_t clear_color = 0x00; //Default to black
 
 static void swap_points(int32_t* v0, int32_t* v1) {
-  *v0 ^= *v1; 
-  *v1 ^= *v0; 
+  *v0 ^= *v1;
+  *v1 ^= *v0;
   *v0 ^= *v1;
 }
 
+// Bayer matrix for ordered dithering
+static const uint8_t ditherMatrix[8][8] = {
+        { 0*4, 32*4, 8*4, 40*4, 2*4, 34*4, 10*4, 42*4},
+        {48*4, 16*4, 56*4, 24*4, 50*4, 18*4, 58*4, 26*4},
+        {12*4, 44*4, 4*4, 36*4, 14*4, 46*4, 6*4, 38*4},
+        {60*4, 28*4, 52*4, 20*4, 62*4, 30*4, 54*4, 22*4},
+        { 3*4, 35*4, 11*4, 43*4, 1*4, 33*4, 9*4, 41*4},
+        {51*4, 19*4, 59*4, 27*4, 49*4, 17*4, 57*4, 25*4},
+        {15*4, 47*4, 7*4, 39*4, 13*4, 45*4, 5*4, 37*4},
+        {63*4, 31*4, 55*4, 23*4, 61*4, 29*4, 53*4, 21*4}
+};
 
-static void draw_pixel(int32_t x0, int32_t y0) {
-  if (CHECK_CLIP(x0, y0)) {
-    int i = (y0*FRAMEBUFFER_WIDTH + x0) / 2;
-    if (x0 % 2 == 1) {
-      framebuffer[i] = (framebuffer[i] & 0xF0) | (current_color & 0x0F);
-    } else {
-      framebuffer[i] = (framebuffer[i] & 0x0F) | ((current_color & 0x0F) << 4);
+uint8_t ditherPattern(int16_t y, uint8_t gray) {// calculate repeating, dithered gray for this loop
+    // TODO: check if unrolling this loop is better
+    const uint8_t ditherY = (uint8_t)y % 8;
+    uint8_t ditheredByte = 0;
+    for(uint8_t bit = 0; bit < 8; bit++){
+        ditheredByte <<= 1;
+        ditheredByte |= gray > ditherMatrix[ditherY][bit] ? 0x01 : 0x00;
     }
-  }
+    return ditheredByte;
 }
 
+const int16_t SCREEN_WIDTH = FRAMEBUFFER_WIDTH;
+const int16_t SCREEN_HEIGHT = FRAMEBUFFER_HEIGHT;
+const uint8_t BYTES_PER_ROW = 20;
 
-void d2d_DrawLine(int x0, int y0, int x1, int y1) { 
+static void draw_pixel(int x, int y) {
+    if (x >= SCREEN_WIDTH || y >= SCREEN_HEIGHT|| x < 0 || y < 0 || !screen_buffer) return;
+    int byte_offset = y*BYTES_PER_ROW + x/8;
+    screen_buffer[byte_offset] &= ~(1<<(x%8));
+    screen_buffer[byte_offset] |= (1<<(x%8));
+}
+
+void d2d_DrawLine(int x0, int y0, int x1, int y1) {
   // compute difference between start and end
   int dx = ABS(x1 - x0);
   int dy = ABS(y1 - y0);
@@ -81,19 +102,71 @@ void d2d_DrawLine(int x0, int y0, int x1, int y1) {
   }
 }
 
-//y0 and y1 guaranteed to be the same, so no need for stepping
-//no need for clipping if we test and bound
-// TODO: need some more work, start or end pixel not aligned
-void d2d_DrawScanLine(int x0, int y0, int x1, int y1) { 
-  if (y0 >= FRAMEBUFFER_HEIGHT || y0 < 0) return;
+void d2d_DrawScanLine(int _x0, int _y0, int _x1, int _y1) {
+    int16_t y = (int16_t) _y0;
+    int16_t x1 = (int16_t) _x0;
+    int16_t x2 = (int16_t) _x1;
+    if(x2<x1){
+        swap_points((int32_t *) &x1, (int32_t *) &x2);
+    }
 
-  if (x0 > x1) swap_points(&x0, &x1);
+    uint8_t gray = current_color;
+    uint8_t *pixelData = (uint8_t *) screen_buffer;
 
-  x0 = MAX(x0, 0);
-  x1 = MIN(x1, FRAMEBUFFER_WIDTH-1);
-  memset(&framebuffer[y0 * FRAMEBUFFER_WIDTH / 2 + x0 / 2], 
-    (current_color << 4) | current_color,
-    (x1 - x0) / 2);
+
+    // clipping
+    if(y<0 || y>= SCREEN_HEIGHT || x1 > x2)return;
+    x1 = MAX(0, x1);
+    x2 = MIN(SCREEN_WIDTH-1, x2);
+
+    // start offset
+    pixelData += y*BYTES_PER_ROW + x1/8;
+
+    // masks for (optionally first and) last byte of line
+    const uint8_t masks[9] = {
+            (uint8_t) 0b00000000,
+            (uint8_t) 0b00000001,
+            (uint8_t) 0b00000011,
+            (uint8_t) 0b00000111,
+            (uint8_t) 0b00001111,
+            (uint8_t) 0b00011111,
+            (uint8_t) 0b00111111,
+            (uint8_t) 0b01111111,
+            (uint8_t) 0b11111111, // simplify masking the mask (see below)
+    };
+    const int16_t firstAlignedX = x1 & (int16_t)0b1111111111111000;
+    const int16_t lastAlignedX = x2 & (int16_t)0b1111111111111000;
+    const int16_t unalignedPixelsLeft = x1 % 8;
+    const int16_t unalignedPixelsRight = x2 % 8;
+    uint8_t ditheredByte= ditherPattern(y, gray);
+
+    // actual loop, based on bytes not individual pixels
+    int16_t x = x1;
+    if(firstAlignedX < lastAlignedX){
+        // first aligned byte
+        if(unalignedPixelsLeft){
+            const uint8_t mask = masks[unalignedPixelsLeft];
+            *pixelData &= mask;
+            *pixelData |= ditheredByte & ~mask;
+            pixelData++;
+            x += 8 - unalignedPixelsLeft;
+        }
+
+        // all but the last aligned byte
+        while(x < lastAlignedX){
+            *pixelData++ = ditheredByte;
+            x += 8;
+        }
+    }
+
+    // last aligned byte
+    uint8_t mask = ~masks[unalignedPixelsRight];
+    // if there's just one byte on this line, mask the mask
+    if(firstAlignedX == lastAlignedX ){
+        mask ^= masks[unalignedPixelsLeft+1];
+    }
+    *pixelData &= mask;
+    *pixelData |= ditheredByte & ~mask;
 }
 
 /*
@@ -102,8 +175,8 @@ void d2d_DrawScanLine(int x0, int y0, int x1, int y1) {
  * color.
  */
 void d2d_SetColor(int r, int g, int b) {
-  //current_color = (r+r+r+b+g+g+g+g)>>3; //Fast Luminosity 8-bit
-  current_color = (r+r+r+b+g+g+g+g)>>6; //Fast Luminosity 4-bit
+    current_color = (uint8_t) r; // all components should be equal anyway
+//  current_color = (r+r+r+b+g+g+g+g)>>3; //Fast Luminosity 8-bit
 }
 
 /*
@@ -117,21 +190,16 @@ void d2d_DrawPixel(int x0, int y0) {
 }
 
 void d2d_ClearColor(int r, int g, int b){
-  //current_color = (r+r+r+b+g+g+g+g)>>3; //Fast Luminosity 8-bit
-  clear_color = (r+r+r+b+g+g+g+g)>>6; //Fast Luminosity 4-bit
+  clear_color = (uint8_t) r; // all components should be equal anyway
+//  current_color = (r+r+r+b+g+g+g+g)>>3; //Fast Luminosity 8-bit
 }
 
 void d2d_ClearWindow(int sx, int sy, int w, int h) {
-  //fast char aligned memset
-  uint32_t clearvalue = clear_color << 4 | clear_color;
-  memset( framebuffer, clearvalue, sizeof(framebuffer));
+    if(!screen_buffer)return;
 
-  //if( (sx%2) && (w%2) ){
-  //  for(int row = sy; row < sy+h; row++){
-  //    memset( &framebuffer[ (sy*FRAMEBUFFER_WIDTH + sx) / 2 ], 0xFF, w/2 );
-  //  }
-  //}else{ //slow hack, need to manually keep other pixel when not aligned
-    //Todo
-  //}
+    for(int16_t y = (int16_t) 0; y<FRAMEBUFFER_HEIGHT; y++){
+        uint8_t dither_byte = ditherPattern(y, clear_color);
+        memset(&screen_buffer[y*BYTES_PER_ROW], dither_byte, BYTES_PER_ROW);
+    }
 }
 #pragma GCC pop_options

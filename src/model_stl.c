@@ -17,8 +17,11 @@ void gl_init() {
   glLoadIdentity();
 
   //Invert y here, as pebble origin is top-left, opengl is bottom-left
-  glOrtho(int2sll(-72), int2sll(72), 
-    int2sll(-72), int2sll(72), int2sll(-144), int2sll(30));
+  sll xx = int2sll(FRAMEBUFFER_WIDTH / 2);
+  sll yy = int2sll(FRAMEBUFFER_HEIGHT / 2);
+  sll near = xx > yy ? xx : yy;
+  near = -sllmul2(near);
+  glOrtho(-xx, xx, -yy, yy, near, int2sll(30));
 
   glMatrixMode( GL_MODELVIEW );
   glLoadIdentity();
@@ -31,7 +34,7 @@ void gl_init() {
   //gluPerspective(40.0, 1.4, -100.0, 0.0);
 
 
-  GLfloat amb[4] = {dbl2sll(0.3), dbl2sll(0.3), dbl2sll(0.3), int2sll(0)};
+  GLfloat amb[4] = {dbl2sll(1), dbl2sll(1), dbl2sll(1), int2sll(0)};
   GLfloat dif[4] = {int2sll(1),int2sll(1),int2sll(1),int2sll(0)};
   GLfloat lightpos[] = {int2sll(30), int2sll(64), int2sll(-34), int2sll(1)};
   glLightfv(GL_LIGHT0,GL_POSITION,lightpos);
@@ -50,7 +53,8 @@ void gl_drawframe(uint8_t* model, bool wireframe, uint8_t rotation, bool reset) 
   glPolygonMode(GL_FRONT, (wireframe) ? GL_LINE : GL_FILL);
 
   int triangle_count = *(int*)&model[80];
-  glClearColor(int2sll(0),int2sll(0),int2sll(0),int2sll(0));
+  sll bg_color = dbl2sll(0); // change this to 0.5 for a gray
+  glClearColor(bg_color, bg_color, bg_color,int2sll(0));
   glClear(GL_COLOR_BUFFER_BIT);
 
   if (reset) {

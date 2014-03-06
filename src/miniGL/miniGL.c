@@ -276,9 +276,10 @@ void glLoadIdentity(void) {
  */
 void glClearColor(GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha) {
   d2d_ClearColor(
-    int2sll(sllmul(red, 255)),
-    int2sll(sllmul(green, 255)),
-    int2sll(sllmul(blue, 255)));
+    sll2int(sllmul(red, int2sll(255))),
+    sll2int(sllmul(green, int2sll(255))),
+    sll2int(sllmul(blue, int2sll(255)))
+  );
 }
 
 /**
@@ -628,9 +629,11 @@ void DrawScanLine(GLfloat *start, GLfloat *end, GLfloat *startnormal,
   }
 #else
   /** Just draw the 2D scan line */
-  d2d_DrawLine(
-    sll2int(start[0]), sll2int(start[1]), 
+//  d2d_DrawLine(
+  d2d_DrawScanLine(
+    sll2int(start[0]), sll2int(start[1]),
     sll2int(end[0]), sll2int(end[1]));
+
 #endif
 }
 
@@ -984,8 +987,7 @@ void glEnd(void) {
         DrawScanLine(start, end, normal, normal,
           GOURAUD);
 #else
-        // TODO : Should be able to use d2d_DrawScanLine here eventually
-        d2d_DrawLine(sll2int(start[0]), sll2int(start[1]), 
+          d2d_DrawScanLine(sll2int(start[0]), sll2int(start[1]),
           sll2int(end[0]), sll2int(end[1]));
 #endif
 
