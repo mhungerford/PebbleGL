@@ -67,6 +67,7 @@ void gl_drawframe(uint8_t* model, bool wireframe, uint8_t rotation, bool reset) 
     glRotatef(int2sll(-10), int2sll(1), int2sll(1), int2sll(1));
   }
   for (int i = 0; i < triangle_count; i++){
+    //if((i % 50) == 0) psleep(1);
     struct stl_data stl = *(struct stl_data*)&model[80 + 4 + i*sizeof(stl)];
 //     float red   = (   stl.color & 0x001F )        / 31.0;
 //     float green = ( ( stl.color & 0x03E0 ) >> 5 ) / 31.0;

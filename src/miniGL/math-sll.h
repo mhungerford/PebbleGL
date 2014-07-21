@@ -415,6 +415,8 @@ static __inline__ sll sllmul(sll left, sll right)
 	 */
 	sll retval;
 
+  /* using it ne to fix arm conditional errors in thumb mode */
+
 	__asm__ (
 		"@ sllmul\n\t"
 		"umull	%R0, %Q0, %Q1, %Q2\n\t"
@@ -422,8 +424,10 @@ static __inline__ sll sllmul(sll left, sll right)
 		"umlal	%Q0, %R0, %Q1, %R2\n\t"
 		"umlal	%Q0, %R0, %Q2, %R1\n\t"
 	        "tst	%R1, #0x80000000\n\t"
+          "it ne\n\t"
 	        "subne	%R0, %R0, %Q2\n\t"
 	        "tst	%R2, #0x80000000\n\t"
+          "it ne\n\t"
 	        "subne	%R0, %R0, %Q1\n\t"
 		: "=&r" (retval)
 		: "%r" (left), "r" (right)

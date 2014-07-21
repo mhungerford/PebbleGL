@@ -1,8 +1,8 @@
 {
   "uuid": "7d60b4e6-6ea4-43a4-9e15-821a48b93e54",
-  "shortName": "MiniGL Models",
-  "longName": "MiniGL Models",
-  "companyName": "Your Company",
+  "shortName": "PebbleGL",
+  "longName": "PebbleGL Models",
+  "companyName": "niceTux",
   "versionCode": 1,
   "versionLabel": "1.0.0",
   "watchapp": {
@@ -14,36 +14,45 @@
   "resources": {
     "media": [
     {
+      "menuIcon": true,
+      "type": "png",
+      "name": "IMAGE_ICON",
+      "file": "pebblegl_icon.png"
+    },{
       "type": "raw",
       "name": "MODEL_1",
       "file": "mask.stl"
     },{
       "type": "raw",
-      "name": "MODEL_2",
-      "file": "batman.stl"
+      "name": "MODEL_SKULL",
+      "file": "skull.stl"
     },{
       "type": "raw",
-      "name": "MODEL_3",
-      "file": "heart.stl"
-    },{
-      "type": "raw",
-      "name": "MODEL_4",
-      "file": "gear.stl"
-    },{
-      "type": "raw",
-      "name": "MODEL_5",
+      "name": "MODEL_SUPERMAN",
       "file": "superman.stl"
     },{
       "type": "raw",
-      "name": "MODEL_6",
-      "file": "usb_sign.stl"
+      "name": "MODEL_FIGHTER",
+      "file": "fighter.stl"
     },{
       "type": "raw",
-      "name": "MODEL_7",
-      "file": "apple.stl"
+      "name": "MODEL_GUN",
+      "file": "gun.stl"
     },{
       "type": "raw",
-      "name": "MODEL_8",
+      "name": "MODEL_SPIDER",
+      "file": "spider.stl"
+    },{
+      "type": "raw",
+      "name": "MODEL_ROBOT",
+      "file": "robot.stl"
+    },{
+      "type": "raw",
+      "name": "MODEL_UNICORN",
+      "file": "unicorn.stl"
+    },{
+      "type": "raw",
+      "name": "MODEL_N",
       "file": "n.stl"
     }
     ]

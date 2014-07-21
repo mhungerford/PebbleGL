@@ -128,7 +128,8 @@ static void deinit(void) {
   window_destroy(window);
 }
 
-int main(void) {
+__attribute__((used))
+extern int main(void) {
   init();
 
   app_event_loop();

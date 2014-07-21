@@ -3,8 +3,8 @@
 
 #include "draw2d.h"
 
-#pragma GCC push_options
-#pragma GCC optimize ("O3")
+//#pragma GCC optimize ("O3")
+#pragma GCC optimize ("O2")
 
 #define MIN(a, b) \
   ((a) < (b)) ? (a) : (b)
@@ -21,11 +21,13 @@ uint8_t *screen_buffer; // pointer to actual screen buffer of the app (set durin
 static uint8_t current_color = 0x00; //Default to black
 static uint8_t clear_color = 0x00; //Default to black
 
+#if 0
 static void swap_points(int32_t* v0, int32_t* v1) {
   *v0 ^= *v1;
   *v1 ^= *v0;
   *v0 ^= *v1;
 }
+#endif
 
 // Bayer matrix for ordered dithering
 static const uint8_t ditherMatrix[8][8] = {
@@ -107,8 +109,10 @@ void d2d_DrawScanLine(int _x0, int _y0, int _x1, int _y1) {
     int16_t x1 = (int16_t) _x0;
     int16_t x2 = (int16_t) _x1;
     if(x2<x1){
-        swap_points((int32_t *) &x1, (int32_t *) &x2);
+        //swap_points((int32_t *) &x1, (int32_t *) &x2);
+        return;
     }
+    x1--; //temp hack to help reduce seams by overlapping edges
 
     uint8_t gray = current_color;
     uint8_t *pixelData = (uint8_t *) screen_buffer;
@@ -202,4 +206,3 @@ void d2d_ClearWindow(int sx, int sy, int w, int h) {
         memset(&screen_buffer[y*BYTES_PER_ROW], dither_byte, BYTES_PER_ROW);
     }
 }
-#pragma GCC pop_options

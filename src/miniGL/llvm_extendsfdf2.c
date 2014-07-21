@@ -44,7 +44,6 @@
 #define CHAR_BIT 8
 #endif
 
-#pragma GCC push_options
 #pragma GCC optimize ("O3") // Smaller than Os in this case (16 bytes)
 
 typedef float src_t;
@@ -142,4 +141,3 @@ dst_t llvm_extendsfdf2(src_t a) {
     const dst_rep_t result = absResult | (dst_rep_t)sign << (dstBits - srcBits);
     return dstFromRep(result);
 }
-#pragma GCC pop_options
