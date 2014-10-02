@@ -10,7 +10,6 @@ extern int SDL_SoftStretch(SDL_Surface *src, SDL_Rect *srcrect,
     SDL_Surface *dst, SDL_Rect *dstrect);
 
 #include "model_stl.h"
-#include "dither.h"
 #include "miniGL/miniGL.h"
 
 static bool reset = false;
@@ -130,22 +129,24 @@ void sdl_draw(void) {
       break;
     }
   }
-  SDL_Delay(200);
+  SDL_Delay(80);
 }
 
 //provided by draw2d
-extern uint8_t framebuffer[144*144/2];
+extern uint8_t *screen_buffer;
 
 int main(int argc, char* argv[]){
   unsigned char* model = load_model();
 
   sdl_setup();
 
+  //point the draw2d buffer to our sdl buffer pointer
+  screen_buffer = screenbuffer;
+
   gl_init();
 
   while (1) {
     gl_drawframe(model, wireframe, rotation, reset);
-    floyd_steinberg_dither(framebuffer, (uint8_t*)screenbuffer, -1);
     sdl_draw();
   }
 

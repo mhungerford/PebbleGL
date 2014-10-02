@@ -53,7 +53,7 @@ GLfloat cur_normal[4];
 GLfloat vertices_color[MAX_VERTICES][4];
 GLfloat vertices_normal[MAX_VERTICES][4];
 GLfloat vertices[MAX_VERTICES][4];
-GLfloat scr_vertices[MAX_VERTICES][3];
+GLfloat scr_vertices[MAX_VERTICES][4];
 int num_vertices;
 int screen_width;
 int screen_height;

@@ -1,6 +1,7 @@
 #include <pebble.h>
 #include "model_stl.h"
 
+
 static Window *window;
 static Layer *render_layer;
 static bool wireframe = false;
@@ -128,8 +129,9 @@ static void deinit(void) {
   window_destroy(window);
 }
 
-__attribute__((used))
-extern int main(void) {
+//__attribute__((used))
+__attribute__((externally_visible))
+int main(void) {
   init();
 
   app_event_loop();

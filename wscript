@@ -59,21 +59,23 @@ def build(ctx):
     #ctx.env.LINKFLAGS.append('-flto')
     #ctx.env.LINKFLAGS.append('-fwhole-program')
     #ctx.env.LINKFLAGS.append('-Os')
-    #ctx.env.LINKFLAGS.append('-fno-delete-null-pointer-checks')
+    ctx.env.LINKFLAGS.append('-fno-delete-null-pointer-checks')
     #ctx.env.LINKFLAGS.append('-funroll-loops')
     #ctx.env.LINKFLAGS.append('-ffunction-sections')
     #ctx.env.LINKFLAGS.append('-fdata-sections')
 
     #ctx.env.CFLAGS.append('--specs=nano.specs')
-    ctx.env.CFLAGS.append('-nostartfiles')
+    #ctx.env.CFLAGS.append('-nostartfiles')
     #ctx.env.LINKFLAGS.append('--specs=nano.specs')
-    ctx.env.LINKFLAGS.append('-nostartfiles')
+    #ctx.env.LINKFLAGS.append('-nostartfiles')
     #ctx.env.LINKFLAGS.append('-Wl,--gc-sections')
 
-    #ctx.env.CFLAGS.append('-flto')
+    ctx.env.CFLAGS.append('-flto')
     #ctx.env.CFLAGS.append('-fuse-linker-plugin')
-    #ctx.env.LINKFLAGS=['-mcpu=cortex-m3','-mthumb','-Wl,--gc-sections','-Wl,--warn-common','-specs=nano.specs','-flto','-fuse-linker-plugin','-Os']
-    #ctx.env.LINKFLAGS.append('-Wa,-mimplicit-it=thumb')
+    #ctx.env.LINKFLAGS=['-mcpu=cortex-m3','-mthumb','-Wl,--gc-sections','-Wl,--warn-common','-flto','-fuse-linker-plugin','-Os']
+    ctx.env.LINKFLAGS.append('-Wa,-mimplicit-it=thumb')
+    #ctx.env.LINKFLAGS.append('-fuse-linker-plugin')
+    #ctx.env.LINKFLAGS.append('-Wl,--entry=main')
 
     ctx.pbl_program(source=['src/main.c','src/model_stl.c','src/miniGL/draw2d.c','src/miniGL/llvm_extendsfdf2.c','src/miniGL/miniGL.c'],
                     target='pebble-app.elf')
