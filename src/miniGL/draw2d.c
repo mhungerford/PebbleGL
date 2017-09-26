@@ -164,10 +164,10 @@ void d2d_DrawScanLine(int _x0, int _y0, int _x1, int _y1) {
     }
 
     // last aligned byte
-    uint8_t mask = ~masks[unalignedPixelsRight];
+    uint8_t mask = ~masks[unalignedPixelsRight + 1];
     // if there's just one byte on this line, mask the mask
     if(firstAlignedX == lastAlignedX ){
-        mask ^= masks[unalignedPixelsLeft+1];
+        mask ^= masks[unalignedPixelsLeft];
     }
     *pixelData &= mask;
     *pixelData |= ditheredByte & ~mask;
